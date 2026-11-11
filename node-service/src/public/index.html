@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 5 - Streams & WebSockets</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #272822; color: #f8f8f2; padding: 10px; border-radius: 4px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Лабораторна робота №5: Streams & WebSockets</h1>
+
+    <div class="card">
+        <h3>1. Запуск потокової обробки файлу (Streams)</h3>
+        <button onclick="startStream()">Запустити обробку файлу (POST)</button>
+        <p id="streamStatus">Статус: очікування...</p>
+    </div>
+
+    <div class="card">
+        <h3>2. WebSocket Логи та Керування</h3>
+        <input type="text" id="msgInput" placeholder="Введіть повідомлення..." style="padding: 8px; width: 300px;">
+        <button onclick="sendMessage()">Надіслати на сервер</button>
+        <h3>Логи WebSocket:</h3>
+        <pre id="wsLogs">Підключення до WebSocket...</pre>
+    </div>
+
+<script>
+    // Підключення до WebSocket серверу
+    const ws = new WebSocket('ws://localhost:3000');
+    const logsEl = document.getElementById('wsLogs');
+
+    ws.onopen = () => {
+        logsEl.innerHTML += "\n[Клієнт]: Успішно підключено до WebSocket!";
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'progress') {
+            document.getElementById('streamStatus').innerText =
+                `Процес: ${data.percent}% (${data.processed} / ${data.total} байт)`;
+        }
+        logsEl.innerHTML += `\n[Сервер]: ${JSON.stringify(data)}`;
+        logsEl.scrollTop = logsEl.scrollHeight;
+    };
+
+    function sendMessage() {
+        const text = document.getElementById('msgInput').value;
+        ws.send(JSON.stringify({ type: "message", text: text }));
+        document.getElementById('msgInput').value = '';
+    }
+
+    async function startStream() {
+        document.getElementById('streamStatus').innerText = "Статус: генерація та обробка...";
+        const response = await fetch('/api/stream/process', { method: 'POST' });
+        const result = await response.json();
+        console.log(result);
+    }
+</script>
+
+</body>
+</html>

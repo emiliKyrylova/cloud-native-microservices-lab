@@ -1,0 +1,10 @@
+node_modules/
+dist/
+bin/
+.env
+.env.*
+.git/
+*.md
+nginx/certs/
+.venv/
+__pycache__/
